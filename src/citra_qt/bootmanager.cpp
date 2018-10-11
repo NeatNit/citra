@@ -209,11 +209,11 @@ void GRenderWindow::closeEvent(QCloseEvent* event) {
 }
 
 void GRenderWindow::keyPressEvent(QKeyEvent* event) {
-    InputCommon::GetKeyboard()->PressKey(event->key());
+    InputCommon::GetKeyboard()->PressKey(event->nativeVirtualKey());
 }
 
 void GRenderWindow::keyReleaseEvent(QKeyEvent* event) {
-    InputCommon::GetKeyboard()->ReleaseKey(event->key());
+    InputCommon::GetKeyboard()->ReleaseKey(event->nativeVirtualKey());
 }
 
 void GRenderWindow::mousePressEvent(QMouseEvent* event) {

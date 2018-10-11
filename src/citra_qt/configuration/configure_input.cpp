@@ -8,6 +8,11 @@
 #include <QMenu>
 #include <QMessageBox>
 #include <QTimer>
+
+#ifdef _WIN32
+#include <windows.h>
+#endif
+
 #include "citra_qt/configuration/config.h"
 #include "citra_qt/configuration/configure_input.h"
 #include "citra_qt/configuration/configure_motion_touch.h"
@@ -22,19 +27,35 @@ const std::array<std::string, ConfigureInput::ANALOG_SUB_BUTTONS_NUM>
         "modifier",
     }};
 
-static QString getKeyName(int key_code) {
-    switch (key_code) {
-    case Qt::Key_Shift:
-        return QObject::tr("Shift");
-    case Qt::Key_Control:
-        return QObject::tr("Ctrl");
-    case Qt::Key_Alt:
-        return QObject::tr("Alt");
-    case Qt::Key_Meta:
-        return "";
-    default:
-        return QKeySequence(key_code).toString();
+static QString getKeyName(int virtual_key) {
+#ifdef _WIN32
+    unsigned int scanCode = MapVirtualKey(virtual_key, MAPVK_VK_TO_VSC);
+
+    // because MapVirtualKey strips the extended bit for some keys
+    switch (virtual_key) {
+    case VK_DOWN:
+    case VK_LEFT:
+    case VK_UP:
+    case VK_RIGHT:
+    case VK_PRIOR: // page up
+    case VK_NEXT:  // page down
+    case VK_END:
+    case VK_HOME:
+    case VK_INSERT:
+    case VK_DELETE:
+    case VK_DIVIDE:        // numpad slash
+    case VK_NUMLOCK:       // same scancode as pause/break
+        scanCode |= 0x100; // set extended bit
+        break;
     }
+
+    wchar_t keyName[50];
+    if (GetKeyNameTextW(scanCode << 16, keyName, sizeof(keyName)) != 0) {
+        return QString::fromWCharArray(keyName);
+    } else {
+        return "[Error]";
+    }
+#endif // _WIN32
 }
 
 static void SetAnalogButton(const Common::ParamPackage& input_param,
@@ -331,8 +352,9 @@ void ConfigureInput::keyPressEvent(QKeyEvent* event) {
 
     if (event->key() != Qt::Key_Escape) {
         if (want_keyboard_keys) {
-            setPollingResult(Common::ParamPackage{InputCommon::GenerateKeyboardParam(event->key())},
-                             false);
+            setPollingResult(
+                Common::ParamPackage{InputCommon::GenerateKeyboardParam(event->nativeVirtualKey())},
+                false);
         } else {
             // Escape key wasn't pressed and we don't want any keyboard keys, so don't stop polling
             return;

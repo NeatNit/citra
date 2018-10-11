@@ -21,6 +21,8 @@ Config::Config() {
     Reload();
 }
 
+// Oh boy...
+
 const std::array<int, Settings::NativeButton::NumButtons> Config::default_buttons = {
     Qt::Key_A, Qt::Key_S, Qt::Key_Z, Qt::Key_X, Qt::Key_T, Qt::Key_G, Qt::Key_F, Qt::Key_H,
     Qt::Key_Q, Qt::Key_W, Qt::Key_M, Qt::Key_N, Qt::Key_1, Qt::Key_2, Qt::Key_B,
